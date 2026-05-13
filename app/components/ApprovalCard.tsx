@@ -79,7 +79,7 @@ export default function ApprovalCard({ email, investorName, onAction }: Props) {
             stopped: false,
             subject: fuSubject,
             body: fuBody,
-            approved: false,
+            approved: true,
             sentAt: null,
           });
         }

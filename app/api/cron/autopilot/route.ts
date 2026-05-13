@@ -180,24 +180,39 @@ export async function GET(request: Request) {
         console.log(`✅ Successfully sent to ${fu.investor.email}`);
         sentCount++;
 
-        // GENERATE THE NEXT RECURRING FOLLOW-UP AUTOMATICALLY
-        const nextDate = new Date();
-        nextDate.setDate(nextDate.getDate() + 2); 
-        
-        await prisma.followUp.create({
-          data: {
-            emailId: fu.emailId,
-            investorId: fu.investorId,
-            sequenceNumber: fu.sequenceNumber + 1,
-            frequency: "recurring",
-            nextSendDate: nextDate,
-            stopped: false,
-            subject: `Re: ${fu.email.subject}`,
-            body: `Hi ${fu.investor.name},\n\nJust bumping this to the top of your inbox.\n\nBest,\n${profile?.founderName || "Founder"}`,
-            approved: true, // Auto-approved for true recurring
-            sentAt: null
-          }
-        });
+        // GENERATE THE NEXT RECURRING FOLLOW-UP AUTOMATICALLY (Limit to 5 max)
+        if (fu.sequenceNumber < 5) {
+          // Use the SAME frequency the user originally selected
+          const minutesMap: Record<string, number> = {
+            "5_min": 5,
+            "1_week": 7 * 24 * 60,
+            "2_weeks": 14 * 24 * 60,
+            "3_weeks": 21 * 24 * 60,
+            "monthly": 30 * 24 * 60,
+            "custom": 10 * 24 * 60,
+            "recurring": 2 * 24 * 60, // fallback for old records
+          };
+          const delayMinutes = minutesMap[fu.frequency] || 2 * 24 * 60;
+          const nextDate = new Date();
+          nextDate.setMinutes(nextDate.getMinutes() + delayMinutes); 
+          
+          await prisma.followUp.create({
+            data: {
+              emailId: fu.emailId,
+              investorId: fu.investorId,
+              sequenceNumber: fu.sequenceNumber + 1,
+              frequency: fu.frequency, // Preserve the original frequency
+              nextSendDate: nextDate,
+              stopped: false,
+              subject: `Re: ${fu.email.subject}`,
+              body: `Hi ${fu.investor.name},\n\nJust bumping this to the top of your inbox.\n\nBest,\n${profile?.founderName || "Founder"}`,
+              approved: true, // Auto-approved for true recurring
+              sentAt: null
+            }
+          });
+        } else {
+          console.log(`🛑 Max follow-ups (5) reached for ${fu.investor.email}. Stopping sequence.`);
+        }
 
       } catch (err) {
         console.error(`❌ Failed to send to ${fu.investor.email}`, err);

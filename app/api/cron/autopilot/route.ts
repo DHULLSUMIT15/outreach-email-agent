@@ -84,6 +84,40 @@ export async function GET(request: Request) {
               data: { stopped: true }
             });
             console.log(`🛑 Successfully stopped all automated follow-ups for ${investor.name}`);
+
+            // 🔔 SEND NOTIFICATION EMAIL TO FOUNDER
+            try {
+              const profile = await prisma.companyProfile.findFirst();
+              await smtpTransporter.sendMail({
+                from: `"OutreachAI Bot" <${ZOHO_USER}>`,
+                to: ZOHO_USER, // Send notification to yourself
+                subject: `🎉 ${investor.name} (${investor.firm}) REPLIED!`,
+                html: `
+                  <div style="font-family: Arial, sans-serif; padding: 20px; background: #0f172a; color: #e2e8f0; border-radius: 12px;">
+                    <h2 style="color: #10b981; margin-bottom: 16px;">🎉 Investor Reply Detected!</h2>
+                    <p><strong>Investor:</strong> ${investor.name}</p>
+                    <p><strong>Firm:</strong> ${investor.firm}</p>
+                    <p><strong>Email:</strong> ${fromEmail}</p>
+                    <hr style="border-color: #334155; margin: 16px 0;" />
+                    <p style="color: #94a3b8;">All automated follow-ups for ${investor.name} have been <strong style="color: #f59e0b;">automatically stopped</strong>.</p>
+                    <p style="color: #94a3b8; margin-top: 12px;">Log into your dashboard to respond personally:</p>
+                    <a href="https://outreach-email-agent.vercel.app/inbox" style="display: inline-block; margin-top: 8px; padding: 10px 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">Open Dashboard →</a>
+                  </div>
+                `,
+              });
+              console.log(`📧 Notification email sent to ${ZOHO_USER}`);
+            } catch (notifErr) {
+              console.error("Failed to send notification email:", notifErr);
+            }
+
+            // Log activity
+            await prisma.activity.create({
+              data: {
+                type: "reply_received",
+                investorName: investor.name,
+                description: `🎉 ${investor.name} (${investor.firm}) replied! All follow-ups stopped automatically.`,
+              }
+            });
           }
         }
       }

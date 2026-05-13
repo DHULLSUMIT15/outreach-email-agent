@@ -59,9 +59,11 @@ export default function ApprovalCard({ email, investorName, onAction }: Props) {
           custom: 10 * 24 * 60,
         };
 
-        for (let seq = 1; seq <= 2; seq++) {
+        // Create only the first follow-up — the autopilot engine will auto-chain the rest infinitely
+        {
+          const seq = 1;
           const nextDate = new Date();
-          nextDate.setMinutes(nextDate.getMinutes() + minutesMap[followUpFreq] * seq);
+          nextDate.setMinutes(nextDate.getMinutes() + minutesMap[followUpFreq]);
 
           const fuSubject = `Follow-up #${seq} — ${profile?.companyName || "Our startup"}`;
           const fuBody = `Hi ${investorName},\n\nFollowing up on my previous email about ${profile?.companyName || "our startup"}.\n\n${
@@ -83,6 +85,7 @@ export default function ApprovalCard({ email, investorName, onAction }: Props) {
             sentAt: null,
           });
         }
+        // No closing loop — only 1 follow-up created, autopilot chains the rest
       }
 
       onAction();
@@ -250,7 +253,7 @@ export default function ApprovalCard({ email, investorName, onAction }: Props) {
             )}
             {scheduleFollowUp && (
               <span className="text-[11px]" style={{ color: "var(--muted)" }}>
-                2 follow-ups will be auto-drafted
+                🔄 Infinite loop until investor replies
               </span>
             )}
           </div>

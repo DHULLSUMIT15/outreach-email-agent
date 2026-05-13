@@ -76,7 +76,7 @@ export default function SequencesPage() {
         stopped: false,
         subject,
         body,
-        approved: false,
+        approved: true,
         sentAt: null,
       });
     }
@@ -142,7 +142,7 @@ export default function SequencesPage() {
             Follow-up Sequences
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-            Automated follow-ups with manual approval before every send
+            Fully automated follow-ups — sends automatically without approval
           </p>
         </div>
         <button className="btn-primary btn-sm" onClick={() => setShowCreate(!showCreate)}>
@@ -272,11 +272,9 @@ export default function SequencesPage() {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      {!fu.approved && (
-                        <button className="btn-success btn-sm" onClick={() => approveFollowUp(fu.id)}>
-                          <Check size={12} /> Approve
-                        </button>
-                      )}
+                      <span className="text-[11px] font-medium px-2 py-1 rounded-lg" style={{ background: "rgba(16,185,129,0.15)", color: "#10b981" }}>
+                        ✓ Auto-approved
+                      </span>
                       <button
                         className="btn-secondary btn-sm"
                         onClick={() => toggleStop(fu.id, fu.stopped)}
@@ -294,19 +292,17 @@ export default function SequencesPage() {
                   >
                     {fu.body}
                   </div>
-                  {fu.approved && (
-                    <div className="mt-3 flex items-center justify-between bg-green-500/10 p-2 rounded border border-green-500/20">
-                      <p className="text-[11px] font-medium text-green-500">
-                        ✓ Approved — Scheduled for {new Date(fu.nextSendDate).toLocaleDateString()}
-                      </p>
-                      <button 
-                        className="btn-primary py-1 px-2 text-[11px]" 
-                        onClick={() => handleSendFollowUp(fu.id)}
-                      >
-                        <Send size={12} className="mr-1" /> Send Now
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-3 flex items-center justify-between bg-green-500/10 p-2 rounded border border-green-500/20">
+                     <p className="text-[11px] font-medium text-green-500">
+                       🤖 Auto-send scheduled for {new Date(fu.nextSendDate).toLocaleString()}
+                     </p>
+                     <button 
+                       className="btn-primary py-1 px-2 text-[11px]" 
+                       onClick={() => handleSendFollowUp(fu.id)}
+                     >
+                       <Send size={12} className="mr-1" /> Send Now
+                     </button>
+                   </div>
                 </div>
               );
             })}

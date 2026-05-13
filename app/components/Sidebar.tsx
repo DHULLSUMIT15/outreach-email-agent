@@ -128,10 +128,10 @@ export default function Sidebar() {
           </button>
           <div className="px-4 py-3 rounded-xl" style={{ background: "var(--glow-color)" }}>
             <p className="text-xs font-semibold" style={{ color: "var(--accent)" }}>
-              SQLite Database
+              Neon PostgreSQL
             </p>
             <p className="text-[11px] mt-1" style={{ color: "var(--muted)" }}>
-              Data stored in dev.db
+              Connected to cloud database
             </p>
           </div>
         </div>

@@ -48,8 +48,14 @@ export async function GET(request: Request) {
       connection = await Imap.connect(imapConfig);
       await connection.openBox("INBOX");
 
-      // Search for unseen emails
-      const searchCriteria = ["UNSEEN"];
+      // Search for emails from the last 24 hours instead of just UNSEEN, 
+      // so we still catch them even if you opened them manually.
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dateString = `${yesterday.getDate()}-${months[yesterday.getMonth()]}-${yesterday.getFullYear()}`;
+      
+      const searchCriteria = ["ALL", ["SINCE", dateString]];
       const fetchOptions = { bodies: ["HEADER", "TEXT"], markSeen: true };
       const messages = await connection.search(searchCriteria, fetchOptions);
 
@@ -64,12 +70,13 @@ export async function GET(request: Request) {
         const fromEmail = mail.from?.value[0]?.address?.toLowerCase();
 
         if (fromEmail) {
-          // Check if this sender is an investor in our database
+          // Check if this sender is an investor in our database (case-insensitive)
           const investor = await prisma.investor.findFirst({
-            where: { email: { equals: fromEmail } }
+            where: { email: { equals: fromEmail, mode: "insensitive" } }
           });
 
-          if (investor) {
+          // Only process if they haven't already been marked as replied
+          if (investor && investor.status !== "replied") {
             console.log(`✅ Received reply from investor: ${investor.name} (${fromEmail})`);
             
             // Mark investor as replied

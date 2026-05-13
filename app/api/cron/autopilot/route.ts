@@ -98,12 +98,11 @@ export async function GET(request: Request) {
     console.log("⏰ Checking for pending follow-ups that need sending...");
     const now = new Date();
     
-    // Find followups that are approved, not sent, not stopped, and time has passed
+    // Find followups that are not sent, not stopped, and time has passed — NO approval needed
     const pending = await prisma.followUp.findMany({
       where: {
         sentAt: null,
         stopped: false,
-        approved: true, // It must be manually approved or you can remove this to fully automate
         nextSendDate: { lte: now }
       },
       include: { investor: true, email: true }

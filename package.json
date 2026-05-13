@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "autopilot": "npx tsx scripts/autopilot.ts",
     "start": "next start",
     "lint": "eslint"
   },
